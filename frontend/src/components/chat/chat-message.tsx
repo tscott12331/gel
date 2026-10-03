@@ -5,6 +5,7 @@ import { AppEmote } from '@wailsjs/chatter-wails/shared/types';
 import { AppChatMessageFragment } from '@wailsjs/chatter-wails/services/eventsub';
 import React, { useContext } from 'react';
 import Emote from './emote';
+import Anchor from '../util/anchor';
 
 export interface IChatMessageFragment {
     type: 'text'|'cheermote'|'emote'|'mention';
@@ -48,6 +49,8 @@ interface ChatMessageProps {
     showUserPopup: (username: string|undefined, mouseX: number, mouseY: number) => void;
 }
 
+const LINK_RE: RegExp = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g;
+
 export default function ChatMessage({
     message,
     onChatReplyClick=() => {},
@@ -88,6 +91,30 @@ export default function ChatMessage({
                     >{fragment.text}</span>
                 );
             case 'text':
+                const allMatches = fragment.text.matchAll(LINK_RE).toArray();
+                const nodes: React.ReactNode[] = [];
+                console.log(allMatches)
+                // txt then link
+                let lastLinkEnd = 0;
+                for(let i = 0; i < allMatches.length; i++) {
+                    const linkMatch = allMatches[i];
+                    const link = linkMatch[0];
+
+                    const linkStart = linkMatch.index;
+                    if(linkStart - lastLinkEnd > 0) {
+                        nodes.push(<span key={`${index}-${i}t`}>{fragment.text.slice(lastLinkEnd, linkStart)}</span>);
+                    }
+
+                    nodes.push(<span key={`${index}-${i}l`}><Anchor href={link}>{link}</Anchor></span>)
+                    
+                    lastLinkEnd = linkMatch.index+link.length;
+                }
+
+                if(lastLinkEnd < fragment.text.length) {
+                    nodes.push(<span key={`${index}-${allMatches.length}t`}>{fragment.text.slice(lastLinkEnd)}</span>);
+                }
+
+                return nodes;
             default:
                 return fragment.text;
         }

@@ -108,13 +108,13 @@ export default function useChat({ channel, user, maxMessages = 200 }: {
         messageBuffer.current.messages.push(appMessage);
     }
 
-    const handleChatMessageEvent = (event: Events.WailsEvent<"common:chat-message">) => {
+    const handleChatMessageEvent = (event: Events.WailsEvent<"gel:chat-message">) => {
         if(event.data?.channel && channel === event.data.channel) {
             appendChatMessageToBuffer(event.data);
         }
     }
 
-    const handleBanEvent = (event: Events.WailsEvent<"common:ban">) => {
+    const handleBanEvent = (event: Events.WailsEvent<"gel:ban">) => {
         if(event.data.channel !== channel) return;
 
         const banTypeInfo: TBanTypeInfo = event.data.isPermanent
@@ -133,13 +133,13 @@ export default function useChat({ channel, user, maxMessages = 200 }: {
         messageBuffer.current.bans.set(event.data.userLogin, banInfo);
     }
 
-    const handleClearMsgEvent = (event: Events.WailsEvent<"common:clear-msg">) => {
+    const handleClearMsgEvent = (event: Events.WailsEvent<"gel:clear-msg">) => {
         if(event.data.channel !== channel) return;
 
         messageBuffer.current.deletions.add(event.data.messageID);
     }
 
-    const handleNewSetEvent = (event: Events.WailsEvent<"chatter:emote:new-set">, broadcasterId: string) => {
+    const handleNewSetEvent = (event: Events.WailsEvent<"gel:emote:new-set">, broadcasterId: string) => {
         if(event.data.ChannelSpecific && event.data.BroadcasterId !== broadcasterId) return;
 
         addEmoteSet(event.data);
@@ -184,7 +184,7 @@ export default function useChat({ channel, user, maxMessages = 200 }: {
     }
 
     const emitChatOpenState = (channel: string, accessToken: string, open: boolean) => {
-        Events.Emit('common:chat-open', {
+        Events.Emit('gel:chat-open', {
             channel,
             accessToken,
             open,
@@ -193,11 +193,11 @@ export default function useChat({ channel, user, maxMessages = 200 }: {
 
     const listenersOn = (broadcasterId: string) => {
         const offFns: (() => void)[] = [
-            Events.On('common:chat-message', handleChatMessageEvent),
-            Events.On('common:stream-data', (e) => setStreamData(e.data)),
-            Events.On('common:ban', handleBanEvent),
-            Events.On('common:clear-msg', handleClearMsgEvent),
-            Events.On('chatter:emote:new-set', (e) => handleNewSetEvent(e, broadcasterId))
+            Events.On('gel:chat-message', handleChatMessageEvent),
+            Events.On('gel:stream-data', (e) => setStreamData(e.data)),
+            Events.On('gel:ban', handleBanEvent),
+            Events.On('gel:clear-msg', handleClearMsgEvent),
+            Events.On('gel:emote:new-set', (e) => handleNewSetEvent(e, broadcasterId))
         ];
 
         const interval = setInterval(() => {

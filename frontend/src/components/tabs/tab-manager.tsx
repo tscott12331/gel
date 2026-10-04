@@ -51,17 +51,17 @@ export default function TabManager({
         }));
     }
 
-    const handleSharedChatBegin = (event: Events.WailsEvent<"common:shared-chat-begin">) => {
+    const handleSharedChatBegin = (event: Events.WailsEvent<"gel:shared-chat-begin">) => {
         if(!event.data.participant) return tabs;
         addParticipantsToTabName(event.data.channel, event.data.participant);
     }
 
-    const handleSharedChatUpdate = (event: Events.WailsEvent<"common:shared-chat-update">) => {
+    const handleSharedChatUpdate = (event: Events.WailsEvent<"gel:shared-chat-update">) => {
         if(!event.data.participant) return tabs;
         addParticipantsToTabName(event.data.channel, event.data.participant);
     }
 
-    const handleSharedChatEnd = (event: Events.WailsEvent<"common:shared-chat-end">) => {
+    const handleSharedChatEnd = (event: Events.WailsEvent<"gel:shared-chat-end">) => {
         const eventRoute = createTabRoute(event.data.channel);
         const tabToChangeIndex = tabs.findIndex(t => t.tabRoute === eventRoute);
         editTab(tabToChangeIndex, (tab) => ({
@@ -124,9 +124,9 @@ export default function TabManager({
 
     const listenersOn = () => {
         const offFns: (() => void)[] = [];
-        offFns.push(Events.On('common:shared-chat-begin', handleSharedChatBegin));
-        offFns.push(Events.On('common:shared-chat-update', handleSharedChatUpdate));
-        offFns.push(Events.On('common:shared-chat-end', handleSharedChatEnd));
+        offFns.push(Events.On('gel:shared-chat-begin', handleSharedChatBegin));
+        offFns.push(Events.On('gel:shared-chat-update', handleSharedChatUpdate));
+        offFns.push(Events.On('gel:shared-chat-end', handleSharedChatEnd));
     }
 
     useEffect(() => {

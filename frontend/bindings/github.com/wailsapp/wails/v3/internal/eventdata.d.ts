@@ -15,16 +15,16 @@ import type * as types$0 from "../../../../../chatter-wails/shared/types/models.
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
-            "chatter:emote:new-set": types$0.NewEmoteSetEvent;
-            "common:ban": eventsub$0.BanEventData;
-            "common:chat-message": eventsub$0.ESChatMessage | null;
-            "common:chat-open": eventsub$0.ChatOpenData;
-            "common:clear-msg": eventsub$0.ClearMsgEventData;
-            "common:shared-chat-begin": eventsub$0.SharedChatBeginEventData;
-            "common:shared-chat-end": eventsub$0.SharedChatEndEventData;
-            "common:shared-chat-update": eventsub$0.SharedChatUpdateEventData;
-            "common:stream-data": eventsub$0.StreamData;
-            "common:user-login": types$0.AppUser | null;
+            "gel:ban": eventsub$0.BanEventData;
+            "gel:chat-message": eventsub$0.ESChatMessage | null;
+            "gel:chat-open": eventsub$0.ChatOpenData;
+            "gel:clear-msg": eventsub$0.ClearMsgEventData;
+            "gel:emote:new-set": types$0.NewEmoteSetEvent;
+            "gel:shared-chat-begin": eventsub$0.SharedChatBeginEventData;
+            "gel:shared-chat-end": eventsub$0.SharedChatEndEventData;
+            "gel:shared-chat-update": eventsub$0.SharedChatUpdateEventData;
+            "gel:stream-data": eventsub$0.StreamData;
+            "gel:user-login": types$0.AppUser | null;
         }
     }
 }

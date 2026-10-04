@@ -93,7 +93,6 @@ export default function ChatMessage({
             case 'text':
                 const allMatches = fragment.text.matchAll(LINK_RE).toArray();
                 const nodes: React.ReactNode[] = [];
-                console.log(allMatches)
                 // txt then link
                 let lastLinkEnd = 0;
                 for(let i = 0; i < allMatches.length; i++) {

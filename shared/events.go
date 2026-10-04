@@ -7,7 +7,7 @@ import (
 )
 
 func EmitNewSet(app *application.App, set *types.AppEmoteSet, channelSpecific bool, broadcasterId string) {
-	app.Event.Emit("chatter:emote:new-set", types.NewEmoteSetEvent{
+	app.Event.Emit("gel:emote:new-set", types.NewEmoteSetEvent{
 		BroadcasterId: broadcasterId,
 		ChannelSpecific: channelSpecific,
 		AppEmoteSet:   *set,

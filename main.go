@@ -14,22 +14,21 @@ var assets embed.FS
 
 func main() {
 	// Register events
-	// TODO: rename events to be under chatter namespace
-	application.RegisterEvent[*eventsub.ESChatMessage]("common:chat-message")
-	application.RegisterEvent[eventsub.StreamData]("common:stream-data")
-	application.RegisterEvent[eventsub.ChatOpenData]("common:chat-open")
-	application.RegisterEvent[*types.AppUser]("common:user-login")
-	application.RegisterEvent[eventsub.SharedChatBeginEventData]("common:shared-chat-begin")
-	application.RegisterEvent[eventsub.SharedChatUpdateEventData]("common:shared-chat-update")
-	application.RegisterEvent[eventsub.SharedChatEndEventData]("common:shared-chat-end")
-	application.RegisterEvent[eventsub.BanEventData]("common:ban")
-	application.RegisterEvent[eventsub.ClearMsgEventData]("common:clear-msg")
-	application.RegisterEvent[types.NewEmoteSetEvent]("chatter:emote:new-set")
+	application.RegisterEvent[*eventsub.ESChatMessage]("gel:chat-message")
+	application.RegisterEvent[eventsub.StreamData]("gel:stream-data")
+	application.RegisterEvent[eventsub.ChatOpenData]("gel:chat-open")
+	application.RegisterEvent[*types.AppUser]("gel:user-login")
+	application.RegisterEvent[eventsub.SharedChatBeginEventData]("gel:shared-chat-begin")
+	application.RegisterEvent[eventsub.SharedChatUpdateEventData]("gel:shared-chat-update")
+	application.RegisterEvent[eventsub.SharedChatEndEventData]("gel:shared-chat-end")
+	application.RegisterEvent[eventsub.BanEventData]("gel:ban")
+	application.RegisterEvent[eventsub.ClearMsgEventData]("gel:clear-msg")
+	application.RegisterEvent[types.NewEmoteSetEvent]("gel:emote:new-set")
 
 	// Create an instance of the app structure
 	// Create application with options
 	app := application.New(application.Options{
-		Name: "Chatter",
+		Name: "Gel",
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
 		},
@@ -65,7 +64,7 @@ func main() {
 
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "chatter-wails",
+		Title:  "gel",
 		Width:  1024,
 		Height: 768,
 		Frameless: true,

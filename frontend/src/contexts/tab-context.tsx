@@ -6,6 +6,7 @@ import { rotateArr } from "@/util/arr";
 export type TTab = {
     readonly tabRoute: string;
     readonly tabName: string;
+    removable: boolean;
 }
 
 interface ITabState {
@@ -24,6 +25,7 @@ export const createTab = (channel: string): TTab => {
     return {
         tabName: channel,
         tabRoute: createTabRoute(channel),
+        removable: true,
     };
 }
 
@@ -43,11 +45,13 @@ interface ITabContext {
 const HOME_TAB: TTab = {
     tabRoute: '/',
     tabName: 'home',
+    removable: false,
 };
 
 const SEARCH_TAB: TTab = {
     tabRoute: '/search',
     tabName: 'search',
+    removable: false,
 };
 
 export const FIXED_TAB_COUNT = 2;
@@ -80,18 +84,26 @@ export function TabContextProvider({
     });
 
     const removeTab = (tab: TTab) => {
-        if(tab.tabRoute == HOME_TAB.tabRoute) return; // can't remove home tab :)
-        if(tab.tabRoute === tabState.curTab.tab.tabRoute) {
-            setTabState(tabState => ({
-                tabs: tabState.tabs.filter(t => t.tabRoute !== tab.tabRoute),
-                curTab: {
+        if(!tab.removable) return;
+        setTabState(tabState => {
+            const tabIndex = tabState.tabs.findIndex(t => t.tabRoute === tab.tabRoute);
+            if(tabIndex === -1) return tabState;
+
+            let newCurTab = tabState.curTab;
+            if(tab.tabRoute === tabState.curTab.tab.tabRoute) {
+                newCurTab = {
                     tab: HOME_TAB,
                     index: 0,
-                },
-            }));
-        }
+                };
+            }
 
-        DisconnectFromChatroom(tab.tabRoute.split('/chatroom/')[1]).catch(broadcastError);
+            DisconnectFromChatroom(tab.tabRoute.split('/chatroom/')[1]).catch(broadcastError);
+            return {
+                tabs: tabState.tabs.filter(t => t.tabRoute !== tab.tabRoute),
+                curTab: newCurTab,
+            };
+
+        });
     }
 
     const addTab = (tab: TTab) => {

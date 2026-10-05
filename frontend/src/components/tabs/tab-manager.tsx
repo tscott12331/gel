@@ -23,7 +23,7 @@ export default function TabManager({
     const [isAddingTab, setIsAddingTab] = useState<boolean>(false);
     const [newTabText, setNewTabText] = useState<string>("");
 
-    const { homeTab: home, searchTab, tabs, curTab, selectTab, addTab, removeTab, editTab, rotateTabs } = useContext(TabContext)
+    const { homeTab: home, searchTab, tabs, curTab, selectTab, addTab, removeTab, editTab, rotateTabs, switchTabNext } = useContext(TabContext)
 
     const navigate = useNavigate();
 
@@ -51,23 +51,31 @@ export default function TabManager({
         }));
     }
 
-    const handleSharedChatBegin = (event: Events.WailsEvent<"common:shared-chat-begin">) => {
+    const handleSharedChatBegin = (event: Events.WailsEvent<"gel:shared-chat-begin">) => {
         if(!event.data.participant) return tabs;
         addParticipantsToTabName(event.data.channel, event.data.participant);
     }
 
-    const handleSharedChatUpdate = (event: Events.WailsEvent<"common:shared-chat-update">) => {
+    const handleSharedChatUpdate = (event: Events.WailsEvent<"gel:shared-chat-update">) => {
         if(!event.data.participant) return tabs;
         addParticipantsToTabName(event.data.channel, event.data.participant);
     }
 
-    const handleSharedChatEnd = (event: Events.WailsEvent<"common:shared-chat-end">) => {
+    const handleSharedChatEnd = (event: Events.WailsEvent<"gel:shared-chat-end">) => {
         const eventRoute = createTabRoute(event.data.channel);
         const tabToChangeIndex = tabs.findIndex(t => t.tabRoute === eventRoute);
         editTab(tabToChangeIndex, (tab) => ({
             ...tab,
             tabName: event.data.channel,
         }));
+    }
+
+    const handleNewTab = (_: Events.WailsEvent<"gel:new-tab">) => {
+        setIsAddingTab(true);
+    }
+
+    const handleSwitchTabNext = (event: Events.WailsEvent<"gel:switch-tab-next">) => {
+        switchTabNext(event.data.Forward);
     }
 
     const handleAddTabKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -123,10 +131,15 @@ export default function TabManager({
     }
 
     const listenersOn = () => {
-        const offFns: (() => void)[] = [];
-        offFns.push(Events.On('common:shared-chat-begin', handleSharedChatBegin));
-        offFns.push(Events.On('common:shared-chat-update', handleSharedChatUpdate));
-        offFns.push(Events.On('common:shared-chat-end', handleSharedChatEnd));
+        const offFns: (() => void)[] = [
+            Events.On('gel:shared-chat-begin', handleSharedChatBegin),
+            Events.On('gel:shared-chat-update', handleSharedChatUpdate),
+            Events.On('gel:shared-chat-end', handleSharedChatEnd),
+            Events.On('gel:new-tab', handleNewTab),
+            Events.On('gel:switch-tab-next', handleSwitchTabNext),
+        ];
+
+        return () => offFns.forEach(fn => fn());
     }
 
     useEffect(() => {

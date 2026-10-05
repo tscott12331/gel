@@ -5,6 +5,7 @@ import (
 	"chatter-wails/shared/types"
 	"embed"
 	"fmt"
+	"log"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -14,22 +15,23 @@ var assets embed.FS
 
 func main() {
 	// Register events
-	// TODO: rename events to be under chatter namespace
-	application.RegisterEvent[*eventsub.ESChatMessage]("common:chat-message")
-	application.RegisterEvent[eventsub.StreamData]("common:stream-data")
-	application.RegisterEvent[eventsub.ChatOpenData]("common:chat-open")
-	application.RegisterEvent[*types.AppUser]("common:user-login")
-	application.RegisterEvent[eventsub.SharedChatBeginEventData]("common:shared-chat-begin")
-	application.RegisterEvent[eventsub.SharedChatUpdateEventData]("common:shared-chat-update")
-	application.RegisterEvent[eventsub.SharedChatEndEventData]("common:shared-chat-end")
-	application.RegisterEvent[eventsub.BanEventData]("common:ban")
-	application.RegisterEvent[eventsub.ClearMsgEventData]("common:clear-msg")
-	application.RegisterEvent[types.NewEmoteSetEvent]("chatter:emote:new-set")
+	application.RegisterEvent[*eventsub.ESChatMessage]("gel:chat-message")
+	application.RegisterEvent[eventsub.StreamData]("gel:stream-data")
+	application.RegisterEvent[eventsub.ChatOpenData]("gel:chat-open")
+	application.RegisterEvent[*types.AppUser]("gel:user-login")
+	application.RegisterEvent[eventsub.SharedChatBeginEventData]("gel:shared-chat-begin")
+	application.RegisterEvent[eventsub.SharedChatUpdateEventData]("gel:shared-chat-update")
+	application.RegisterEvent[eventsub.SharedChatEndEventData]("gel:shared-chat-end")
+	application.RegisterEvent[eventsub.BanEventData]("gel:ban")
+	application.RegisterEvent[eventsub.ClearMsgEventData]("gel:clear-msg")
+	application.RegisterEvent[types.NewEmoteSetEvent]("gel:emote:new-set")
+	application.RegisterEvent[types.EmptyEvent]("gel:new-tab")
+	application.RegisterEvent[types.SwitchTabNextEvent]("gel:switch-tab-next")
 
 	// Create an instance of the app structure
 	// Create application with options
 	app := application.New(application.Options{
-		Name: "Chatter",
+		Name: "Gel",
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
 		},
@@ -65,12 +67,29 @@ func main() {
 
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "chatter-wails",
+		Title:  "gel",
 		Width:  1024,
 		Height: 768,
 		Frameless: true,
 		BackgroundColour: application.NewRGBA(27, 38, 54, 1),
 		BackgroundType: application.BackgroundTypeSolid,
+	})
+
+	// Keybindings
+	app.KeyBinding.Add("Ctrl+T", func(window application.Window) {
+		window.EmitEvent("gel:new-tab", types.EVENT_NOOP)
+	})
+	app.KeyBinding.Add("Ctrl+N", func(window application.Window) {
+		log.Printf("forward switch")
+		window.EmitEvent("gel:switch-tab-next", types.SwitchTabNextEvent{
+			Forward: true,
+		})
+	})
+	app.KeyBinding.Add("Ctrl+Shift+N", func(window application.Window) {
+		log.Printf("reverse switch")
+		window.EmitEvent("gel:switch-tab-next", types.SwitchTabNextEvent{
+			Forward: false,
+		})
 	})
 
 	err := app.Run()

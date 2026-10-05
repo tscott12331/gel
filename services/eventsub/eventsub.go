@@ -369,7 +369,7 @@ func (c *Client) pollStreamData(channel string) {
 		}
 	}
 
-	c.app.Event.Emit("common:stream-data", streamData)
+	c.app.Event.Emit("gel:stream-data", streamData)
 }
 
 type ChatroomData struct{
@@ -453,7 +453,7 @@ func (es *EventSubService) Connect() {
 				if !es.Client.connected {
 					log.Printf("[Connect]: Connecting to eventsub web server\n\n")
 					var err error
-					es.app.Event.On("common:chat-open", es.handleChatOpenEvent)
+					es.app.Event.On("gel:chat-open", es.handleChatOpenEvent)
 
 					es.Client.socket, err = util.NewSocket(esCtx, twitchESURL.String(), es.Client.handleESMessage)
 
@@ -470,7 +470,7 @@ func (es *EventSubService) Connect() {
 			} else {
 				log.Printf("[Connect]: Ready is false, setting connected to false\n\n")
 				es.Client.connected = false
-				es.app.Event.Off("common:chat-open")
+				es.app.Event.Off("gel:chat-open")
 			}
 
 		case id := <-newSessionIdChan:
@@ -503,7 +503,7 @@ func (es *EventSubService) handleClearMsgEvent(message *irc.IRCMessage) {
 		MessageID: message.Tags["target-msg-id"],
 	}
 
-	es.app.Event.Emit("common:clear-msg", data)
+	es.app.Event.Emit("gel:clear-msg", data)
 }
 
 func (es *EventSubService) handleClearChatEvent(message *irc.IRCMessage) {
@@ -517,7 +517,7 @@ func (es *EventSubService) handleClearChatEvent(message *irc.IRCMessage) {
 		}
 	}
 
-	es.Client.app.Event.Emit("common:ban", BanEventData{
+	es.Client.app.Event.Emit("gel:ban", BanEventData{
 		Channel: message.Channel,
 		UserLogin: message.Data,
 		IsPermanent: isPermanent,
@@ -544,7 +544,7 @@ func (c *Client) handleESNotification(message ESMessage) {
 		}
 
 		chatMessage := esNotificationToEsChatMessage(notification, sub.Data)
-		c.app.Event.Emit("common:chat-message", chatMessage)
+		c.app.Event.Emit("gel:chat-message", chatMessage)
 	case "channel.shared_chat.begin":
 		c.handleSharedChatBegin(notification)
 	case "channel.shared_chat.update":
@@ -585,7 +585,7 @@ func (c *Client) handleBan(notification *ESNotification) {
 		Duration: duration,
 	}
 
-	c.app.Event.Emit("common:ban", banEventData)
+	c.app.Event.Emit("gel:ban", banEventData)
 }
 
 func (c *Client) handleSharedChatEnd(notification *ESNotification) {
@@ -599,7 +599,7 @@ func (c *Client) handleSharedChatEnd(notification *ESNotification) {
 		clear(sub.Data.SharedChatParticipants)
 	})
 	
-	c.app.Event.Emit("common:shared-chat-end", SharedChatEndEventData{
+	c.app.Event.Emit("gel:shared-chat-end", SharedChatEndEventData{
 		Channel: sharedChatEndEvent.Broadcaster_user_login,
 	})
 }
@@ -625,7 +625,7 @@ func (c *Client) handleSharedChatUpdate(notification *ESNotification) {
 		if !exists { return }
 
 		participants := sub.Data.SharedChatParticipants
-		c.app.Event.Emit("common:shared-chat-update", SharedChatUpdateEventData{
+		c.app.Event.Emit("gel:shared-chat-update", SharedChatUpdateEventData{
 			Channel: sharedChatUpdateEvent.Broadcaster_user_login,
 			Participants: participants,
 		})
@@ -661,7 +661,7 @@ func (c *Client) fetchSharedChatProfileImages(sharedChatBeginEvent *ESSharedChat
 	if !exists { return }
 
 	participants := sub.Data.SharedChatParticipants
-	c.app.Event.Emit("common:shared-chat-begin", SharedChatBeginEventData{
+	c.app.Event.Emit("gel:shared-chat-begin", SharedChatBeginEventData{
 		Channel: sharedChatBeginEvent.Broadcaster_user_login,
 		Participants: participants,
 	})
@@ -828,7 +828,7 @@ func (es *EventSubService) CreateSubscription(condition ESSubscriptionCondition,
 	}
 
 	if len(res.Body.Data) == 0 {
-		log.Panic("[CreateSubscription]: Twitch API and chatter data types are out of sync\n\n")
+		log.Panic("[CreateSubscription]: Twitch API and gel data types are out of sync\n\n")
 	}
 
 	subId := res.Body.Data[0].Id
@@ -1078,7 +1078,7 @@ func (es *EventSubService) goGetSharedChatSession(
 	if !exists { return }
 
 	participants := sub.Data.SharedChatParticipants
-	es.app.Event.Emit("common:shared-chat-begin", SharedChatBeginEventData{
+	es.app.Event.Emit("gel:shared-chat-begin", SharedChatBeginEventData{
 		Channel: channelName,
 		Participants: participants,
 	})

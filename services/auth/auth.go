@@ -121,7 +121,7 @@ func (as *AuthService) Login(accessToken string) (*types.AppUser, error) {
 
 	user := apiUserToAppUser(apiUser, accessToken)
 	shared.SetUser(user)
-	as.app.Event.Emit("common:user-login", user)
+	as.app.Event.Emit("gel:user-login", user)
 
 	return user, nil
 }

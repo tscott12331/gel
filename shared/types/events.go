@@ -5,3 +5,11 @@ type NewEmoteSetEvent struct{
 	ChannelSpecific bool
 	AppEmoteSet
 }
+
+type EmptyEvent any
+const EVENT_NOOP = -1
+
+
+type SwitchTabNextEvent struct{
+	Forward bool
+}

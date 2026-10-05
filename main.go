@@ -5,6 +5,7 @@ import (
 	"chatter-wails/shared/types"
 	"embed"
 	"fmt"
+	"log"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -24,6 +25,8 @@ func main() {
 	application.RegisterEvent[eventsub.BanEventData]("gel:ban")
 	application.RegisterEvent[eventsub.ClearMsgEventData]("gel:clear-msg")
 	application.RegisterEvent[types.NewEmoteSetEvent]("gel:emote:new-set")
+	application.RegisterEvent[types.EmptyEvent]("gel:new-tab")
+	application.RegisterEvent[types.SwitchTabNextEvent]("gel:switch-tab-next")
 
 	// Create an instance of the app structure
 	// Create application with options
@@ -70,6 +73,23 @@ func main() {
 		Frameless: true,
 		BackgroundColour: application.NewRGBA(27, 38, 54, 1),
 		BackgroundType: application.BackgroundTypeSolid,
+	})
+
+	// Keybindings
+	app.KeyBinding.Add("Ctrl+T", func(window application.Window) {
+		window.EmitEvent("gel:new-tab", types.EVENT_NOOP)
+	})
+	app.KeyBinding.Add("Ctrl+N", func(window application.Window) {
+		log.Printf("forward switch")
+		window.EmitEvent("gel:switch-tab-next", types.SwitchTabNextEvent{
+			Forward: true,
+		})
+	})
+	app.KeyBinding.Add("Ctrl+Shift+N", func(window application.Window) {
+		log.Printf("reverse switch")
+		window.EmitEvent("gel:switch-tab-next", types.SwitchTabNextEvent{
+			Forward: false,
+		})
 	})
 
 	err := app.Run()

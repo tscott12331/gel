@@ -20,10 +20,12 @@ declare module "@wailsio/runtime" {
             "gel:chat-open": eventsub$0.ChatOpenData;
             "gel:clear-msg": eventsub$0.ClearMsgEventData;
             "gel:emote:new-set": types$0.NewEmoteSetEvent;
+            "gel:new-tab": types$0.EmptyEvent;
             "gel:shared-chat-begin": eventsub$0.SharedChatBeginEventData;
             "gel:shared-chat-end": eventsub$0.SharedChatEndEventData;
             "gel:shared-chat-update": eventsub$0.SharedChatUpdateEventData;
             "gel:stream-data": eventsub$0.StreamData;
+            "gel:switch-tab-next": types$0.SwitchTabNextEvent;
             "gel:user-login": types$0.AppUser | null;
         }
     }

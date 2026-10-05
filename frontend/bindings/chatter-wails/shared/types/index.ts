@@ -6,5 +6,7 @@ export type {
     AppEmoteMap,
     AppEmoteSet,
     AppUser,
-    NewEmoteSetEvent
+    EmptyEvent,
+    NewEmoteSetEvent,
+    SwitchTabNextEvent
 } from "./models.js";

@@ -40,6 +40,8 @@ export interface AppUser {
     "access_token": string;
 }
 
+export type EmptyEvent = any;
+
 export interface NewEmoteSetEvent {
     "BroadcasterId": string;
     "ChannelSpecific": boolean;
@@ -47,4 +49,8 @@ export interface NewEmoteSetEvent {
     "Provider": string;
     "Section": string;
     "Emotes": AppEmoteMap;
+}
+
+export interface SwitchTabNextEvent {
+    "Forward": boolean;
 }

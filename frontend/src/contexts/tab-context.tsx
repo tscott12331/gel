@@ -8,6 +8,14 @@ export type TTab = {
     readonly tabName: string;
 }
 
+interface ITabState {
+    tabs: TTab[];
+    curTab: {
+        tab: TTab;
+        index: number;
+    }
+}
+
 export const createTabRoute = (channel: string): string => {
     return `/chatroom/${channel.toLowerCase()}`;
 }
@@ -29,6 +37,7 @@ interface ITabContext {
     selectTab: (tab: TTab) => void;
     editTab: (index: number, changeFn: (tab: TTab) => TTab) => void;
     rotateTabs: (leftIndex: number, rightIndex: number, dir: 'left'|'right') => void;
+    switchTabNext: (forward: boolean) => void;
 }
 
 const HOME_TAB: TTab = {
@@ -53,6 +62,7 @@ export const TabContext = createContext<ITabContext>({
     selectTab(_tab) {},
     editTab(_index, _changeFn) {},
     rotateTabs(_leftIndex, _rightIndex, _dir) {},
+    switchTabNext(_forward) {},
 });
 
 export function TabContextProvider({
@@ -61,69 +71,136 @@ export function TabContextProvider({
 
     const { broadcastError } = useContext(GlobalContext);
 
-    const [tabs, setTabs] = useState<TTab[]>([HOME_TAB, SEARCH_TAB]);
-    const [curTab, setCurTab] = useState<TTab>(HOME_TAB);
+    const [tabState, setTabState] = useState<ITabState>({
+        tabs: [HOME_TAB, SEARCH_TAB],
+        curTab: {
+            tab: HOME_TAB,
+            index: 0,
+        },
+    });
 
     const removeTab = (tab: TTab) => {
         if(tab.tabRoute == HOME_TAB.tabRoute) return; // can't remove home tab :)
-        if(tab.tabRoute === curTab.tabRoute) {
-            setCurTab(HOME_TAB);
+        if(tab.tabRoute === tabState.curTab.tab.tabRoute) {
+            setTabState(tabState => ({
+                tabs: tabState.tabs.filter(t => t.tabRoute !== tab.tabRoute),
+                curTab: {
+                    tab: HOME_TAB,
+                    index: 0,
+                },
+            }));
         }
 
         DisconnectFromChatroom(tab.tabRoute.split('/chatroom/')[1]).catch(broadcastError);
-
-        setTabs((curTabs) => curTabs.filter(t => t.tabRoute !== tab.tabRoute));
     }
 
     const addTab = (tab: TTab) => {
-        if(!tabs.find(t => t.tabRoute === tab.tabRoute)) {
-            setTabs((curTabs) => [...curTabs, tab]);
-        }
+        setTabState(tabState => {
+            if(!tabState.tabs.find(t => t.tabRoute === tab.tabRoute)) {
+                return {
+                    ...tabState,
+                    tabs: [...tabState.tabs, tab],
+                };
+            }
+
+            return tabState;
+        });
     }
 
     const selectTab = (tab: TTab) => {
-        if(tabs.find(t => t.tabRoute === tab.tabRoute)) {
-            setCurTab(tab);
-        }
+        setTabState(tabState => {
+            const index = tabState.tabs.findIndex((t) => t.tabRoute === tab.tabRoute);
+            if(index !== -1) {
+                return {
+                    tabs: [...tabState.tabs],
+                    curTab: {
+                        tab,
+                        index,
+                    }
+                };
+            }
+
+            return tabState;
+        });
     }
 
     const editTab = (index: number, changeFn: (tab: TTab) => TTab) => {
-        setTabs(tabs => {
-            if(index < 0 || index >= tabs.length) return tabs;
-            const changed = changeFn(tabs[index]);
+        setTabState(tabState => {
+            if(index < 0 || index >= tabState.tabs.length) return tabState;
+            const changed = changeFn(tabState.tabs[index]);
             const newTabs = [
-                ...tabs.slice(0, index),
+                ...tabState.tabs.slice(0, index),
                 changed,
-                ...tabs.slice(index+1)
+                ...tabState.tabs.slice(index+1)
             ];
-            return newTabs;
+            return {
+                ...tabState,
+                tabs: newTabs,
+            };
         });
     }
 
     const rotateTabs = (leftIndex: number, rightIndex: number, dir: 'left'|'right') => {
         if(leftIndex == rightIndex) return;
 
-        const preRotateSegement = [...tabs.slice(leftIndex, rightIndex + 1)];
-        const rotatedSegement = rotateArr(preRotateSegement, dir)
-        const newTabs = [
-            ...tabs.slice(0, leftIndex),
-            ...rotatedSegement,
-            ...tabs.slice(rightIndex + 1)
-        ];
-        setTabs(newTabs);
+        setTabState(tabState => {
+            const preRotateSegement = [...tabState.tabs.slice(leftIndex, rightIndex + 1)];
+            const rotatedSegement = rotateArr(preRotateSegement, dir)
+            let newCurTab = tabState.curTab;
+            if(tabState.curTab.index >= leftIndex && tabState.curTab.index <= rightIndex) {
+                const rotLen = rightIndex-leftIndex+1
+                newCurTab = {
+                    ...tabState.curTab,
+                    index: dir == 'right'
+                        ? ((tabState.curTab.index-leftIndex+1)%rotLen)+leftIndex
+                        : ((tabState.curTab.index-leftIndex+rotLen-1)%rotLen)+leftIndex
+                };
+            }
+
+            const newTabs = [
+                ...tabState.tabs.slice(0, leftIndex),
+                ...rotatedSegement,
+                ...tabState.tabs.slice(rightIndex + 1)
+            ];
+
+            return {
+                ...tabState,
+                tabs: newTabs,
+                curTab: newCurTab,
+            };
+        });
+    }
+
+    const switchTabNext = (forward: boolean) => {
+        setTabState(tabState => {
+            const nextIndex = forward
+                ? (tabState.curTab.index+1)%tabState.tabs.length
+                : (tabState.curTab.index+tabState.tabs.length-1)%tabState.tabs.length;
+
+            const nextTab = tabState.tabs.at(nextIndex);
+            if(!nextTab) return tabState;
+            return {
+                ...tabState,
+                curTab: {
+                    tab: nextTab,
+                    index: nextIndex,
+                }
+            };
+        });
     }
 
     const ctxValue = useMemo<ITabContext>(() => ({
         homeTab: HOME_TAB,
         searchTab: SEARCH_TAB,
-        tabs,
-        curTab,
+        tabs: tabState.tabs,
+        curTab: tabState.curTab.tab,
         addTab,
         removeTab,
         selectTab,
         editTab,
         rotateTabs,
-    }), [tabs, curTab])
+        switchTabNext,
+    }), [tabState.tabs, tabState.curTab.index, tabState.curTab.tab.tabRoute, tabState.curTab.tab.tabName])
 
     return (
         <TabContext.Provider value={ctxValue}>
